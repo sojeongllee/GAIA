@@ -20,15 +20,16 @@ socket.on('show-ui', ({ scenario, option }) => {
 
   document.getElementById('waiting-screen').style.display  = 'none';
   document.getElementById('submitted-msg').style.display   = 'none';
-  document.getElementById('response-panel').classList.remove('visible');
+
+  const rp = document.getElementById('response-panel');
+  rp.classList.remove('visible', 'rp-minimized');
+  document.getElementById('rp-toggle-btn').textContent = '▾ 접기';
   resetFormButtons();
 
   renderUI(option);
   emitEvent('screen_shown');
 
-  setTimeout(() => {
-    document.getElementById('response-panel').classList.add('visible');
-  }, 600);
+  setTimeout(() => rp.classList.add('visible'), 600);
 });
 
 socket.on('reset', () => {
@@ -38,9 +39,9 @@ socket.on('reset', () => {
   lastDetailRequest = null;
   selections        = {};
 
-  document.getElementById('ui-overlay').innerHTML      = '';
+  document.getElementById('ui-overlay').innerHTML = '';
   document.getElementById('waiting-screen').style.display = 'flex';
-  document.getElementById('response-panel').classList.remove('visible');
+  document.getElementById('response-panel').classList.remove('visible', 'rp-minimized');
   document.getElementById('submitted-msg').style.display  = 'none';
 });
 
@@ -52,6 +53,69 @@ function emitEvent(type) {
     scenarioId:    currentScenario?.id  ?? null,
     optionId:      currentOption?.id    ?? null
   });
+}
+
+/* ── Drag-and-drop utility ───────────────────────────────────────────────── */
+function makeDraggable(el, handle) {
+  handle.style.cursor = 'grab';
+  let startX, startY, startL, startT, active = false;
+
+  function startDrag(cx, cy) {
+    const rect = el.getBoundingClientRect();
+    // Freeze current rendered position as absolute pixels,
+    // removing transform/bottom/right anchoring so drag math is simple.
+    el.style.left      = rect.left + 'px';
+    el.style.top       = rect.top  + 'px';
+    el.style.right     = 'auto';
+    el.style.bottom    = 'auto';
+    el.style.transform = 'none';
+    el.style.margin    = '0';
+    startX = cx; startY = cy;
+    startL = rect.left; startT = rect.top;
+    active = true;
+    handle.style.cursor = 'grabbing';
+  }
+
+  function doDrag(cx, cy) {
+    if (!active) return;
+    el.style.left = (startL + cx - startX) + 'px';
+    el.style.top  = (startT + cy - startY) + 'px';
+  }
+
+  function stopDrag() {
+    active = false;
+    handle.style.cursor = 'grab';
+    document.removeEventListener('mousemove', onMM);
+    document.removeEventListener('mouseup',   onMU);
+    document.removeEventListener('touchmove', onTM);
+    document.removeEventListener('touchend',  onTE);
+  }
+
+  const onMM = (e) => doDrag(e.clientX, e.clientY);
+  const onMU = () => stopDrag();
+  const onTM = (e) => { e.preventDefault(); doDrag(e.touches[0].clientX, e.touches[0].clientY); };
+  const onTE = () => stopDrag();
+
+  handle.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+    startDrag(e.clientX, e.clientY);
+    document.addEventListener('mousemove', onMM);
+    document.addEventListener('mouseup',   onMU);
+  });
+
+  handle.addEventListener('touchstart', (e) => {
+    startDrag(e.touches[0].clientX, e.touches[0].clientY);
+    document.addEventListener('touchmove', onTM, { passive: false });
+    document.addEventListener('touchend',  onTE);
+  }, { passive: true });
+}
+
+/* ── Drag bar helper ─────────────────────────────────────────────────────── */
+function buildDragBar(label) {
+  const bar = document.createElement('div');
+  bar.className = 'panel-drag-bar';
+  bar.innerHTML = `<span class="drag-grip">⠿</span><span>${label}</span>`;
+  return bar;
 }
 
 /* ── Render AI UI overlay ────────────────────────────────────────────────── */
@@ -76,37 +140,66 @@ function renderUI(option) {
 function buildPopup(c) {
   const el = document.createElement('div');
   el.className = 'ui-popup';
-  el.innerHTML = `
+
+  const bar = buildDragBar('팝업 안내');
+
+  const inner = document.createElement('div');
+  inner.className = 'panel-inner';
+  inner.innerHTML = `
     <div class="pop-icon">${c.icon ?? '💡'}</div>
     <div class="pop-heading">${c.heading}</div>
     <div class="pop-body">${c.body}</div>
   `;
+
+  el.appendChild(bar);
+  el.appendChild(inner);
+  makeDraggable(el, bar);
   return el;
 }
 
 function buildSidePanel(c) {
   const el = document.createElement('div');
   el.className = 'ui-sidepanel';
+
+  const bar = buildDragBar('사이드 패널');
+
   const sections = c.sections.map(s =>
     `<div class="sp-section">
       <div class="sp-title">${s.title}</div>
       <div class="sp-body">${s.body}</div>
     </div>`
   ).join('');
-  el.innerHTML = `<div class="panel-heading">${c.heading}</div>${sections}`;
+
+  const inner = document.createElement('div');
+  inner.className = 'panel-inner';
+  inner.innerHTML = `<div class="panel-heading">${c.heading}</div>${sections}`;
+
+  el.appendChild(bar);
+  el.appendChild(inner);
+  makeDraggable(el, bar);
   return el;
 }
 
 function buildHudChecklist(c) {
   const el = document.createElement('div');
   el.className = 'ui-hud-checklist';
+
+  const bar = buildDragBar('체크리스트');
+
   const items = c.items.map((text, i) =>
     `<div class="hud-item" onclick="toggleHudItem(this)" data-index="${i}">
       <div class="hud-checkbox">✓</div>
       <span class="hud-text">${text}</span>
     </div>`
   ).join('');
-  el.innerHTML = `<div class="hud-heading">${c.heading}</div>${items}`;
+
+  const inner = document.createElement('div');
+  inner.className = 'panel-inner';
+  inner.innerHTML = `<div class="hud-heading">${c.heading}</div>${items}`;
+
+  el.appendChild(bar);
+  el.appendChild(inner);
+  makeDraggable(el, bar);
   return el;
 }
 
@@ -115,41 +208,71 @@ function buildMinimap(c) {
     north:'⬆️', northeast:'↗️', east:'➡️', southeast:'↘️',
     south:'⬇️', southwest:'↙️', west:'⬅️', northwest:'↖️'
   };
+
   const el = document.createElement('div');
   el.className = 'ui-minimap';
-  el.innerHTML = `
+
+  const bar = buildDragBar('길 안내');
+
+  const inner = document.createElement('div');
+  inner.className = 'panel-inner';
+  inner.innerHTML = `
     <div class="minimap-label">${c.heading}</div>
     <div class="minimap-arrow">${arrows[c.direction] ?? '➡️'}</div>
     <div class="minimap-label">${c.description}</div>
     <div class="minimap-dist">${c.distance}</div>
   `;
+
+  el.appendChild(bar);
+  el.appendChild(inner);
+  makeDraggable(el, bar);
   return el;
 }
 
 function buildStepByStep(c) {
   const el = document.createElement('div');
   el.className = 'ui-stepbystep';
+
+  const bar = buildDragBar('단계별 안내');
+
   const steps = c.steps.map((text, i) =>
     `<div class="step-item" onclick="toggleStep(this)" data-index="${i}">
       <div class="step-num">${i + 1}</div>
       <span class="step-text">${text}</span>
     </div>`
   ).join('');
-  el.innerHTML = `<div class="step-heading">${c.heading}</div>${steps}`;
+
+  const inner = document.createElement('div');
+  inner.className = 'panel-inner';
+  inner.innerHTML = `<div class="step-heading">${c.heading}</div>${steps}`;
+
+  el.appendChild(bar);
+  el.appendChild(inner);
+  makeDraggable(el, bar);
   return el;
 }
 
 function buildAiButtons(c) {
   const el = document.createElement('div');
   el.className = 'ui-ai-buttons';
+
+  const bar = buildDragBar('AI 추천');
+
   const buttons = c.buttons.map(b =>
     `<button class="aib-btn" onclick="pressAiButton(this,'${b.action}')">${b.label}</button>`
   ).join('');
-  el.innerHTML = `
+
+  const inner = document.createElement('div');
+  inner.className = 'panel-inner';
+  inner.innerHTML = `
     <div class="aib-heading">${c.heading}</div>
     <div class="aib-desc">${c.description}</div>
     <div class="aib-grid">${buttons}</div>
   `;
+
+  el.appendChild(bar);
+  el.appendChild(inner);
+  makeDraggable(el, bar);
   return el;
 }
 
@@ -161,6 +284,16 @@ function toggleStep(el)     { el.classList.toggle('done'); }
 function pressAiButton(btn) {
   btn.closest('.aib-grid').querySelectorAll('.aib-btn').forEach(b => b.classList.remove('pressed'));
   btn.classList.add('pressed');
+}
+
+/* ── Response panel toggle ───────────────────────────────────────────────── */
+
+function toggleRpBody(e) {
+  e.stopPropagation();
+  const panel = document.getElementById('response-panel');
+  const btn   = document.getElementById('rp-toggle-btn');
+  panel.classList.toggle('rp-minimized');
+  btn.textContent = panel.classList.contains('rp-minimized') ? '▴ 펼치기' : '▾ 접기';
 }
 
 /* ── Response form ───────────────────────────────────────────────────────── */
@@ -222,7 +355,9 @@ function submitResponse() {
   socket.emit('submit-response', response);
   emitEvent('response_submitted');
 
-  document.getElementById('response-panel').classList.remove('visible');
+  const rp = document.getElementById('response-panel');
+  rp.classList.remove('visible', 'rp-minimized');
+  document.getElementById('rp-toggle-btn').textContent = '▾ 접기';
   document.getElementById('ui-overlay').innerHTML = '';
 
   const msg = document.getElementById('submitted-msg');
@@ -240,10 +375,16 @@ function setBgImage(input) {
   const reader = new FileReader();
   reader.onload = (e) => {
     const gs = document.getElementById('game-screen');
-    gs.style.backgroundImage  = `url(${e.target.result})`;
-    gs.style.backgroundSize   = 'cover';
+    gs.style.backgroundImage   = `url(${e.target.result})`;
+    gs.style.backgroundSize    = 'cover';
     gs.style.backgroundPosition = 'center';
   };
   reader.readAsDataURL(file);
   input.value = '';
 }
+
+/* ── Init: make response panel draggable ─────────────────────────────────── */
+makeDraggable(
+  document.getElementById('response-panel'),
+  document.getElementById('rp-drag-header')
+);

@@ -28,65 +28,71 @@
   <!-- AI UI overlays -->
   <div id="ui-overlay"></div>
 
-  <!-- Response panel -->
+  <!-- Response panel (floating, draggable, collapsible) -->
   <div id="response-panel">
-    <div class="rp-title">💬 이 UI에 대한 의견을 알려주세요</div>
+    <div class="rp-header" id="rp-drag-header">
+      <span class="rp-header-title">💬 의견 입력</span>
+      <button class="rp-toggle-btn" id="rp-toggle-btn" onclick="toggleRpBody(event)">▾ 접기</button>
+    </div>
+    <div id="rp-body">
+      <div class="rp-title">이 UI에 대한 의견을 알려주세요</div>
 
-    <div class="rp-section">
-      <div class="rp-label">이 UI가 도움이 되었나요?</div>
-      <div class="btn-group">
-        <button class="rp-btn" data-group="helpfulness" data-value="도움됨"
-                onclick="selectBtn(this,'helpfulness','selected-helpful')">👍 도움됨</button>
-        <button class="rp-btn" data-group="helpfulness" data-value="보통"
-                onclick="selectBtn(this,'helpfulness','selected-neutral')">😐 보통</button>
-        <button class="rp-btn" data-group="helpfulness" data-value="도움 안 됨"
-                onclick="selectBtn(this,'helpfulness','selected-unhelpful')">👎 도움 안 됨</button>
+      <div class="rp-section">
+        <div class="rp-label">이 UI가 도움이 되었나요?</div>
+        <div class="btn-group">
+          <button class="rp-btn" data-group="helpfulness" data-value="도움됨"
+                  onclick="selectBtn(this,'helpfulness','selected-helpful')">👍 도움됨</button>
+          <button class="rp-btn" data-group="helpfulness" data-value="보통"
+                  onclick="selectBtn(this,'helpfulness','selected-neutral')">😐 보통</button>
+          <button class="rp-btn" data-group="helpfulness" data-value="도움 안 됨"
+                  onclick="selectBtn(this,'helpfulness','selected-unhelpful')">👎 도움 안 됨</button>
+        </div>
       </div>
-    </div>
 
-    <div class="rp-section">
-      <div class="rp-label">AI 개입 수준이 적절했나요?</div>
-      <div class="btn-group">
-        <button class="rp-btn" data-group="interventionLevel" data-value="너무 적음"
-                onclick="selectBtn(this,'interventionLevel','selected-less')">🔽 너무 적음</button>
-        <button class="rp-btn" data-group="interventionLevel" data-value="적절함"
-                onclick="selectBtn(this,'interventionLevel','selected-ok')">✅ 적절함</button>
-        <button class="rp-btn" data-group="interventionLevel" data-value="너무 많음"
-                onclick="selectBtn(this,'interventionLevel','selected-more')">🔼 너무 많음</button>
+      <div class="rp-section">
+        <div class="rp-label">AI 개입 수준이 적절했나요?</div>
+        <div class="btn-group">
+          <button class="rp-btn" data-group="interventionLevel" data-value="너무 적음"
+                  onclick="selectBtn(this,'interventionLevel','selected-less')">🔽 너무 적음</button>
+          <button class="rp-btn" data-group="interventionLevel" data-value="적절함"
+                  onclick="selectBtn(this,'interventionLevel','selected-ok')">✅ 적절함</button>
+          <button class="rp-btn" data-group="interventionLevel" data-value="너무 많음"
+                  onclick="selectBtn(this,'interventionLevel','selected-more')">🔼 너무 많음</button>
+        </div>
       </div>
-    </div>
 
-    <div class="rp-section">
-      <div class="rp-label">언제 이 UI가 뜨는 것이 좋을까요?</div>
-      <div class="btn-group">
-        <button class="rp-btn" data-group="activationMode" data-value="자동으로 뜨기"
-                onclick="selectBtn(this,'activationMode','selected-auto')">🤖 자동으로 뜨기</button>
-        <button class="rp-btn" data-group="activationMode" data-value="내가 요청할 때만"
-                onclick="selectBtn(this,'activationMode','selected-manual')">🖐️ 내가 요청할 때만</button>
-        <button class="rp-btn" data-group="activationMode" data-value="둘 다 가능"
-                onclick="selectBtn(this,'activationMode','selected-both')">↔️ 둘 다 가능</button>
+      <div class="rp-section">
+        <div class="rp-label">언제 이 UI가 뜨는 것이 좋을까요?</div>
+        <div class="btn-group">
+          <button class="rp-btn" data-group="activationMode" data-value="자동으로 뜨기"
+                  onclick="selectBtn(this,'activationMode','selected-auto')">🤖 자동으로 뜨기</button>
+          <button class="rp-btn" data-group="activationMode" data-value="내가 요청할 때만"
+                  onclick="selectBtn(this,'activationMode','selected-manual')">🖐️ 내가 요청할 때만</button>
+          <button class="rp-btn" data-group="activationMode" data-value="둘 다 가능"
+                  onclick="selectBtn(this,'activationMode','selected-both')">↔️ 둘 다 가능</button>
+        </div>
       </div>
-    </div>
 
-    <div class="rp-section">
-      <div class="rp-label">더 원하는 것이 있나요?</div>
-      <div class="btn-group">
-        <button class="rp-btn" id="btn-more-detail"
-                onclick="pressDetail(this,'더 자세히')">🔍 더 자세히</button>
-        <button class="rp-btn" id="btn-less-detail"
-                onclick="pressDetail(this,'덜 자세히')">📉 덜 자세히</button>
-        <button class="rp-btn" id="btn-other-way"
-                onclick="pressDetail(this,'다른 방식 보기')">🔄 다른 방식 보기</button>
+      <div class="rp-section">
+        <div class="rp-label">더 원하는 것이 있나요?</div>
+        <div class="btn-group">
+          <button class="rp-btn" id="btn-more-detail"
+                  onclick="pressDetail(this,'더 자세히')">🔍 더 자세히</button>
+          <button class="rp-btn" id="btn-less-detail"
+                  onclick="pressDetail(this,'덜 자세히')">📉 덜 자세히</button>
+          <button class="rp-btn" id="btn-other-way"
+                  onclick="pressDetail(this,'다른 방식 보기')">🔄 다른 방식 보기</button>
+        </div>
       </div>
-    </div>
 
-    <div class="rp-section">
-      <div class="rp-label">자유롭게 의견을 남겨주세요 (선택)</div>
-      <textarea class="rp-comment" id="comment-input"
-                placeholder="예: 글씨가 너무 작았어요 / 타이밍이 좋았어요"></textarea>
-    </div>
+      <div class="rp-section">
+        <div class="rp-label">자유롭게 의견을 남겨주세요 (선택)</div>
+        <textarea class="rp-comment" id="comment-input"
+                  placeholder="예: 글씨가 너무 작았어요 / 타이밍이 좋았어요"></textarea>
+      </div>
 
-    <button class="rp-submit" onclick="submitResponse()">응답 제출하기 ✓</button>
+      <button class="rp-submit" onclick="submitResponse()">응답 제출하기 ✓</button>
+    </div>
   </div>
 
   <!-- Submitted confirmation -->
