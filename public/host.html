@@ -18,8 +18,9 @@
   </div>
 
   <div class="topbar-actions">
-    <button class="btn btn-ghost btn-sm" onclick="exportJSON()">⬇️ JSON 내보내기</button>
-    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇️ CSV 내보내기</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportResponsesCSV()">⬇️ 응답 CSV</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportResponsesJSON()">⬇️ 응답 JSON</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportEventsJSON()">⬇️ 이벤트 로그 JSON</button>
   </div>
 </div>
 
@@ -29,14 +30,14 @@
 <!-- Three-column layout -->
 <div id="main">
 
-  <!-- Left: Scenario list -->
+  <!-- Left: Scenario list (grouped by category) -->
   <div class="col" id="col-scenarios">
     <div class="col-header">📋 시나리오</div>
     <div class="col-body" id="scenario-list"></div>
   </div>
 
-  <!-- Middle: Options -->
-  <div class="col" id="col-options" style="border-right:1px solid var(--border);">
+  <!-- Middle: Options + action bar -->
+  <div class="col" id="col-options">
     <div class="col-header">🎛️ UI 옵션</div>
     <div class="col-body" id="option-list">
       <p class="option-placeholder">← 왼쪽에서 시나리오를 선택하세요</p>
@@ -51,23 +52,53 @@
     </div>
   </div>
 
-  <!-- Right: Response log -->
-  <div class="col" id="col-log">
-    <div class="col-header">📊 참가자 응답 로그</div>
-    <div class="col-body" id="log-body">
-      <input
-        type="text"
-        id="log-filter"
-        class=""
-        placeholder="참가자 ID로 필터 (예: P1)"
-        oninput="filterLog()"
-      >
-      <div id="log-entries">
-        <p class="log-empty">아직 응답이 없습니다.</p>
+  <!-- Right: Notes + response log -->
+  <div class="col" id="col-right">
+
+    <!-- Notes -->
+    <div id="notes-section">
+      <div class="col-header" style="border-bottom:none">
+        📝 메모
+        <span id="notes-context"></span>
+      </div>
+      <div id="notes-body">
+        <textarea id="notes-textarea"
+          placeholder="시나리오 또는 UI 옵션을 선택하면 해당 메모를 작성할 수 있어요."
+          oninput="onNoteInput()"
+          disabled></textarea>
       </div>
     </div>
-  </div>
 
+    <!-- Response log -->
+    <div id="log-section">
+      <div class="col-header" style="border-top:1px solid var(--border)">📊 응답 로그</div>
+      <div class="col-body" id="log-body">
+        <input type="text" id="log-filter" placeholder="참가자 ID로 필터 (예: P1)"
+               oninput="filterLog()">
+        <div id="log-entries">
+          <p class="log-empty">아직 응답이 없습니다.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Preview modal -->
+<div id="preview-modal" onclick="closePreview(event)">
+  <div class="preview-container">
+    <div class="preview-header">
+      <div>
+        <span class="preview-type-badge" id="preview-type-badge"></span>
+        <strong id="preview-title"></strong>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closePreviewBtn()">✕ 닫기</button>
+    </div>
+    <div class="preview-game-frame">
+      <div class="preview-pid-badge">미리보기</div>
+      <div id="preview-ui-content"></div>
+    </div>
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>

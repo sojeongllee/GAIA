@@ -6,7 +6,7 @@ document.getElementById('pid-label').textContent = pid;
 /* ── Response state ─────────────────────────────────────────────────────── */
 let currentScenario   = null;
 let currentOption     = null;
-let selections        = {};    // { helpfulness, interventionLevel, activationMode }
+let selections        = {};
 let lastDetailRequest = null;
 
 /* ── Socket ─────────────────────────────────────────────────────────────── */
@@ -24,14 +24,15 @@ socket.on('show-ui', ({ scenario, option }) => {
   resetFormButtons();
 
   renderUI(option);
+  emitEvent('screen_shown');
 
-  // Show response panel after a short moment so participant sees the UI first
   setTimeout(() => {
     document.getElementById('response-panel').classList.add('visible');
   }, 600);
 });
 
 socket.on('reset', () => {
+  emitEvent('reset_received');
   currentScenario   = null;
   currentOption     = null;
   lastDetailRequest = null;
@@ -42,6 +43,16 @@ socket.on('reset', () => {
   document.getElementById('response-panel').classList.remove('visible');
   document.getElementById('submitted-msg').style.display  = 'none';
 });
+
+/* ── Event logging helper ────────────────────────────────────────────────── */
+function emitEvent(type) {
+  socket.emit('log-event', {
+    type,
+    participantId: pid,
+    scenarioId:    currentScenario?.id  ?? null,
+    optionId:      currentOption?.id    ?? null
+  });
+}
 
 /* ── Render AI UI overlay ────────────────────────────────────────────────── */
 function renderUI(option) {
@@ -56,7 +67,7 @@ function renderUI(option) {
     case 'stepbystep':    overlay.appendChild(buildStepByStep(option.content));   break;
     case 'ai-buttons':    overlay.appendChild(buildAiButtons(option.content));    break;
     default:
-      overlay.innerHTML = `<div style="color:#fff;padding:2rem;">알 수 없는 UI 유형: ${option.type}</div>`;
+      overlay.innerHTML = `<div style="color:#fff;padding:2rem">알 수 없는 UI 유형: ${option.type}</div>`;
   }
 }
 
@@ -101,22 +112,14 @@ function buildHudChecklist(c) {
 
 function buildMinimap(c) {
   const arrows = {
-    north:     '⬆️',
-    northeast: '↗️',
-    east:      '➡️',
-    southeast: '↘️',
-    south:     '⬇️',
-    southwest: '↙️',
-    west:      '⬅️',
-    northwest: '↖️'
+    north:'⬆️', northeast:'↗️', east:'➡️', southeast:'↘️',
+    south:'⬇️', southwest:'↙️', west:'⬅️', northwest:'↖️'
   };
-  const arrow = arrows[c.direction] ?? '➡️';
-
   const el = document.createElement('div');
   el.className = 'ui-minimap';
   el.innerHTML = `
     <div class="minimap-label">${c.heading}</div>
-    <div class="minimap-arrow">${arrow}</div>
+    <div class="minimap-arrow">${arrows[c.direction] ?? '➡️'}</div>
     <div class="minimap-label">${c.description}</div>
     <div class="minimap-dist">${c.distance}</div>
   `;
@@ -152,16 +155,10 @@ function buildAiButtons(c) {
 
 /* ── Interactive overlay handlers ────────────────────────────────────────── */
 
-function toggleHudItem(el) {
-  el.classList.toggle('checked');
-}
+function toggleHudItem(el) { el.classList.toggle('checked'); }
+function toggleStep(el)     { el.classList.toggle('done'); }
 
-function toggleStep(el) {
-  el.classList.toggle('done');
-}
-
-function pressAiButton(btn, action) {
-  // Visually toggle; only one can be pressed
+function pressAiButton(btn) {
   btn.closest('.aib-grid').querySelectorAll('.aib-btn').forEach(b => b.classList.remove('pressed'));
   btn.classList.add('pressed');
 }
@@ -169,39 +166,40 @@ function pressAiButton(btn, action) {
 /* ── Response form ───────────────────────────────────────────────────────── */
 
 function selectBtn(btn, group, cls) {
-  // Deselect all in the group
-  const allSelected = [
+  const allCls = [
     'selected-helpful','selected-neutral','selected-unhelpful',
     'selected-less','selected-ok','selected-more',
     'selected-auto','selected-manual','selected-both'
   ];
-  document.querySelectorAll(`[data-group="${group}"]`).forEach(b => {
-    allSelected.forEach(c => b.classList.remove(c));
-  });
+  document.querySelectorAll(`[data-group="${group}"]`).forEach(b =>
+    allCls.forEach(c => b.classList.remove(c))
+  );
   btn.classList.add(cls);
   selections[group] = btn.dataset.value;
 }
 
 function pressDetail(btn, label) {
-  document.querySelectorAll('#response-panel .rp-btn').forEach(b => {
-    if (['btn-more-detail','btn-less-detail','btn-other-way'].includes(b.id)) {
-      b.classList.remove('detail-pressed');
-    }
+  ['btn-more-detail','btn-less-detail','btn-other-way'].forEach(id => {
+    document.getElementById(id).classList.remove('detail-pressed');
   });
   btn.classList.add('detail-pressed');
   lastDetailRequest = label;
+
+  const eventType = label === '더 자세히'    ? 'detail_more_clicked'
+                  : label === '덜 자세히'    ? 'detail_less_clicked'
+                  : 'alternative_requested';
+  emitEvent(eventType);
 }
 
 function resetFormButtons() {
   const allCls = [
     'selected-helpful','selected-neutral','selected-unhelpful',
     'selected-less','selected-ok','selected-more',
-    'selected-auto','selected-manual','selected-both',
-    'detail-pressed'
+    'selected-auto','selected-manual','selected-both','detail-pressed'
   ];
-  document.querySelectorAll('#response-panel .rp-btn').forEach(b => {
-    allCls.forEach(c => b.classList.remove(c));
-  });
+  document.querySelectorAll('#response-panel .rp-btn').forEach(b =>
+    allCls.forEach(c => b.classList.remove(c))
+  );
   document.getElementById('comment-input').value = '';
 }
 
@@ -209,21 +207,21 @@ function submitResponse() {
   if (!currentScenario || !currentOption) return;
 
   const response = {
-    participantId:    pid,
-    scenarioId:       currentScenario.id,
-    scenarioTitle:    currentScenario.title,
-    optionId:         currentOption.id,
-    optionTitle:      currentOption.title,
-    helpfulness:      selections.helpfulness      ?? null,
-    interventionLevel:selections.interventionLevel ?? null,
-    activationMode:   selections.activationMode    ?? null,
-    detailRequest:    lastDetailRequest,
-    comment:          document.getElementById('comment-input').value.trim() || null
+    participantId:     pid,
+    scenarioId:        currentScenario.id,
+    scenarioTitle:     currentScenario.title,
+    optionId:          currentOption.id,
+    optionTitle:       currentOption.title,
+    helpfulness:       selections.helpfulness       ?? null,
+    interventionLevel: selections.interventionLevel  ?? null,
+    activationMode:    selections.activationMode     ?? null,
+    detailRequest:     lastDetailRequest,
+    comment:           document.getElementById('comment-input').value.trim() || null
   };
 
   socket.emit('submit-response', response);
+  emitEvent('response_submitted');
 
-  // Show confirmation, hide form and UI overlay
   document.getElementById('response-panel').classList.remove('visible');
   document.getElementById('ui-overlay').innerHTML = '';
 
@@ -233,4 +231,19 @@ function submitResponse() {
     msg.style.display = 'none';
     document.getElementById('waiting-screen').style.display = 'flex';
   }, 2500);
+}
+
+/* ── Background image upload ─────────────────────────────────────────────── */
+function setBgImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const gs = document.getElementById('game-screen');
+    gs.style.backgroundImage  = `url(${e.target.result})`;
+    gs.style.backgroundSize   = 'cover';
+    gs.style.backgroundPosition = 'center';
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
 }
