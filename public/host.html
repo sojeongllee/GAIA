@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAIA — 호스트 패널</title>
+  <link rel="stylesheet" href="/css/host.css">
+</head>
+<body>
+
+<!-- Top bar -->
+<div id="topbar">
+  <span class="logo">GAIA</span>
+  <span class="status-badge" id="active-badge">대기 중</span>
+
+  <div id="participant-count-badge">
+    👤 연결된 참가자: <span id="participant-count">0</span>명
+  </div>
+
+  <div class="topbar-actions">
+    <button class="btn btn-ghost btn-sm" onclick="exportJSON()">⬇️ JSON 내보내기</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇️ CSV 내보내기</button>
+  </div>
+</div>
+
+<!-- Active state info bar -->
+<div id="active-info"></div>
+
+<!-- Three-column layout -->
+<div id="main">
+
+  <!-- Left: Scenario list -->
+  <div class="col" id="col-scenarios">
+    <div class="col-header">📋 시나리오</div>
+    <div class="col-body" id="scenario-list"></div>
+  </div>
+
+  <!-- Middle: Options -->
+  <div class="col" id="col-options" style="border-right:1px solid var(--border);">
+    <div class="col-header">🎛️ UI 옵션</div>
+    <div class="col-body" id="option-list">
+      <p class="option-placeholder">← 왼쪽에서 시나리오를 선택하세요</p>
+    </div>
+    <div id="action-bar">
+      <button class="btn btn-primary" id="btn-show" disabled onclick="showToParticipant()">
+        ▶ 참가자에게 보이기
+      </button>
+      <button class="btn btn-danger" onclick="resetParticipant()">
+        ↺ 초기화
+      </button>
+    </div>
+  </div>
+
+  <!-- Right: Response log -->
+  <div class="col" id="col-log">
+    <div class="col-header">📊 참가자 응답 로그</div>
+    <div class="col-body" id="log-body">
+      <input
+        type="text"
+        id="log-filter"
+        class=""
+        placeholder="참가자 ID로 필터 (예: P1)"
+        oninput="filterLog()"
+      >
+      <div id="log-entries">
+        <p class="log-empty">아직 응답이 없습니다.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/host.js"></script>
+</body>
+</html>

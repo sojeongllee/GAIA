@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAIA — 참가자 화면</title>
+  <link rel="stylesheet" href="/css/participant.css">
+</head>
+<body>
+<div id="game-screen">
+
+  <!-- Atmospheric trees -->
+  <div class="scenery tree" style="left:5%;bottom:15%;opacity:0.35;transform:scale(1.8)"></div>
+  <div class="scenery tree" style="left:10%;bottom:18%;opacity:0.25;transform:scale(1.2)"></div>
+  <div class="scenery tree" style="left:80%;bottom:12%;opacity:0.3;transform:scale(2)"></div>
+  <div class="scenery tree" style="left:88%;bottom:16%;opacity:0.2;transform:scale(1.3)"></div>
+  <div class="scenery tree" style="left:55%;bottom:8%;opacity:0.2;transform:scale(1)"></div>
+
+  <!-- Participant ID badge -->
+  <div id="pid-badge">참가자: <strong id="pid-label">-</strong></div>
+
+  <!-- HUD: top left -->
+  <div id="hud-topleft">
+    <div class="hud-level">Lv.11 전사</div>
+
+    <div>
+      <div class="hud-label">HP</div>
+      <div class="hp-bar-wrap">
+        <span class="hp-icon">❤️</span>
+        <div class="hp-bar"><div class="hp-fill"></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="hud-label">MP</div>
+      <div class="hp-bar-wrap">
+        <span class="hp-icon">💙</span>
+        <div class="mp-bar"><div class="mp-fill"></div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="hud-label">EXP</div>
+      <div class="xp-bar"><div class="xp-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- Quest panel: top right area -->
+  <div id="quest-panel">
+    <div class="q-label">진행 중인 퀘스트</div>
+    <div class="q-title">어둠의 숲 탐험</div>
+    <div class="q-sub">마법사를 찾아라 (3/5)</div>
+  </div>
+
+  <!-- Minimap -->
+  <div id="minimap">
+    <div class="minimap-inner">
+      <div class="minimap-grid"></div>
+      <div class="minimap-dot player"></div>
+      <div class="minimap-dot enemy"></div>
+      <div class="minimap-dot npc"></div>
+      <div class="minimap-dot quest"></div>
+    </div>
+  </div>
+
+  <!-- Character -->
+  <div id="character-area">
+    <div class="char-body">
+      <div class="char-head"></div>
+    </div>
+    <div class="char-shadow"></div>
+  </div>
+
+  <!-- Waiting screen (shown before host sends anything) -->
+  <div id="waiting-screen">
+    <div class="w-icon">⏳</div>
+    <div class="w-title">대기 중...</div>
+    <div class="w-sub">호스트가 UI를 선택하면 화면이 업데이트됩니다.</div>
+  </div>
+
+  <!-- AI UI overlays (injected by participant.js) -->
+  <div id="ui-overlay"></div>
+
+  <!-- Response panel (shown after UI appears) -->
+  <div id="response-panel">
+    <div class="rp-title">💬 이 UI에 대한 의견을 알려주세요</div>
+
+    <!-- Helpfulness -->
+    <div class="rp-section">
+      <div class="rp-label">이 UI가 도움이 되었나요?</div>
+      <div class="btn-group">
+        <button class="rp-btn" data-group="helpfulness" data-value="도움됨"
+                onclick="selectBtn(this,'helpfulness','selected-helpful')">👍 도움됨</button>
+        <button class="rp-btn" data-group="helpfulness" data-value="보통"
+                onclick="selectBtn(this,'helpfulness','selected-neutral')">😐 보통</button>
+        <button class="rp-btn" data-group="helpfulness" data-value="도움 안 됨"
+                onclick="selectBtn(this,'helpfulness','selected-unhelpful')">👎 도움 안 됨</button>
+      </div>
+    </div>
+
+    <!-- Intervention level -->
+    <div class="rp-section">
+      <div class="rp-label">AI 개입 수준이 적절했나요?</div>
+      <div class="btn-group">
+        <button class="rp-btn" data-group="interventionLevel" data-value="너무 적음"
+                onclick="selectBtn(this,'interventionLevel','selected-less')">🔽 너무 적음</button>
+        <button class="rp-btn" data-group="interventionLevel" data-value="적절함"
+                onclick="selectBtn(this,'interventionLevel','selected-ok')">✅ 적절함</button>
+        <button class="rp-btn" data-group="interventionLevel" data-value="너무 많음"
+                onclick="selectBtn(this,'interventionLevel','selected-more')">🔼 너무 많음</button>
+      </div>
+    </div>
+
+    <!-- Activation mode -->
+    <div class="rp-section">
+      <div class="rp-label">언제 이 UI가 뜨는 것이 좋을까요?</div>
+      <div class="btn-group">
+        <button class="rp-btn" data-group="activationMode" data-value="자동으로 뜨기"
+                onclick="selectBtn(this,'activationMode','selected-auto')">🤖 자동으로 뜨기</button>
+        <button class="rp-btn" data-group="activationMode" data-value="내가 요청할 때만"
+                onclick="selectBtn(this,'activationMode','selected-manual')">🖐️ 내가 요청할 때만</button>
+        <button class="rp-btn" data-group="activationMode" data-value="둘 다 가능"
+                onclick="selectBtn(this,'activationMode','selected-both')">↔️ 둘 다 가능</button>
+      </div>
+    </div>
+
+    <!-- Detail buttons -->
+    <div class="rp-section">
+      <div class="rp-label">더 원하는 것이 있나요?</div>
+      <div class="btn-group">
+        <button class="rp-btn" id="btn-more-detail"
+                onclick="pressDetail(this,'더 자세히')">🔍 더 자세히</button>
+        <button class="rp-btn" id="btn-less-detail"
+                onclick="pressDetail(this,'덜 자세히')">📉 덜 자세히</button>
+        <button class="rp-btn" id="btn-other-way"
+                onclick="pressDetail(this,'다른 방식 보기')">🔄 다른 방식 보기</button>
+      </div>
+    </div>
+
+    <!-- Comment -->
+    <div class="rp-section">
+      <div class="rp-label">자유롭게 의견을 남겨주세요 (선택)</div>
+      <textarea class="rp-comment" id="comment-input"
+                placeholder="예: 글씨가 너무 작았어요 / 타이밍이 좋았어요"></textarea>
+    </div>
+
+    <button class="rp-submit" onclick="submitResponse()">응답 제출하기 ✓</button>
+  </div>
+
+  <!-- Submitted confirmation -->
+  <div id="submitted-msg">✅ 응답이 전달되었습니다!<br>호스트의 다음 선택을 기다려 주세요.</div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/participant.js"></script>
+</body>
+</html>

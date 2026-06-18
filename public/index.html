@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAIA 워크숍</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0d1117;
+      color: #e5e7eb;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+    }
+
+    .logo {
+      font-size: 3rem;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: #ffd700;
+    }
+
+    .subtitle {
+      font-size: 1.1rem;
+      color: #9ca3af;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .link-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 2rem 2.5rem;
+      background: #1a2332;
+      border: 2px solid #2d3748;
+      border-radius: 16px;
+      text-decoration: none;
+      color: #e5e7eb;
+      transition: border-color 0.2s, transform 0.2s;
+      min-width: 200px;
+    }
+
+    .link-card:hover {
+      border-color: #ffd700;
+      transform: translateY(-2px);
+    }
+
+    .link-card .icon { font-size: 2.5rem; }
+    .link-card .name { font-size: 1.2rem; font-weight: 700; }
+    .link-card .desc { font-size: 0.9rem; color: #9ca3af; text-align: center; }
+
+    .participants {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .participants a {
+      padding: 0.5rem 1rem;
+      background: #253347;
+      border-radius: 8px;
+      color: #60a5fa;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .participants a:hover { background: #2d4a6a; }
+
+    .hint { font-size: 0.85rem; color: #6b7280; }
+  </style>
+</head>
+<body>
+  <div class="logo">GAIA</div>
+  <p class="subtitle">게임 접근성 AI 어시스턴트 워크숍<br>Wizard-of-Oz 프로토타입</p>
+
+  <div class="links">
+    <a class="link-card" href="/host">
+      <span class="icon">🎛️</span>
+      <span class="name">호스트 패널</span>
+      <span class="desc">진행자 화면<br>시나리오 선택 및 제어</span>
+    </a>
+    <a class="link-card" href="/participant?pid=P1">
+      <span class="icon">🎮</span>
+      <span class="name">참가자 화면</span>
+      <span class="desc">참가자가 보는 게임 화면<br>AI UI가 표시됩니다</span>
+    </a>
+  </div>
+
+  <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
+    <p class="hint">여러 참가자 ID로 열기</p>
+    <div class="participants">
+      <a href="/participant?pid=P1">참가자 P1</a>
+      <a href="/participant?pid=P2">참가자 P2</a>
+      <a href="/participant?pid=P3">참가자 P3</a>
+      <a href="/participant?pid=P4">참가자 P4</a>
+    </div>
+  </div>
+</body>
+</html>
