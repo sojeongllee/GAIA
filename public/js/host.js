@@ -22,6 +22,7 @@ socket.on('current-state', state => {
   activeOption   = state.option;
   refreshActiveInfo();
   refreshOptionCards();
+  renderLiveView(state.option);
 });
 
 socket.on('initial-responses', data => {
@@ -257,6 +258,21 @@ function renderLog() {
   });
 }
 
+/* ── Live participant view ───────────────────────────────────────────────── */
+function renderLiveView(option) {
+  const waiting = document.getElementById('live-view-waiting');
+  const content = document.getElementById('live-view-content');
+
+  if (!option) {
+    waiting.style.display = 'flex';
+    content.innerHTML = '';
+    return;
+  }
+
+  waiting.style.display = 'none';
+  content.innerHTML = buildPreviewUI(option);
+}
+
 /* ── Preview modal ───────────────────────────────────────────────────────── */
 function openPreview(event, optionId) {
   event.stopPropagation();
@@ -282,15 +298,15 @@ function closePreview(e) {
 function buildPreviewUI(opt) {
   const c = opt.content;
   switch (opt.type) {
-    case 'popup':
+    case 'popup': {
       return `
         <div class="pv-popup">
           <div class="pv-icon">${c.icon ?? '💡'}</div>
           <div class="pv-heading">${c.heading}</div>
           <div class="pv-body">${c.body}</div>
         </div>`;
-
-    case 'sidepanel':
+    }
+    case 'sidepanel': {
       const sections = c.sections.map(s =>
         `<div class="pv-sp-section">
            <div class="pv-sp-title">${s.title}</div>
@@ -302,8 +318,8 @@ function buildPreviewUI(opt) {
           <div class="pv-heading">${c.heading}</div>
           ${sections}
         </div>`;
-
-    case 'hud-checklist':
+    }
+    case 'hud-checklist': {
       const items = c.items.map(t =>
         `<div class="pv-hud-item"><div class="pv-hud-cb"></div><span>${t}</span></div>`
       ).join('');
@@ -313,8 +329,8 @@ function buildPreviewUI(opt) {
           ${items}
         </div>
         <div class="preview-minimap">🗺️</div>`;
-
-    case 'minimap':
+    }
+    case 'minimap': {
       const arrowMap = {
         north:'⬆️', northeast:'↗️', east:'➡️', southeast:'↘️',
         south:'⬇️', southwest:'↙️', west:'⬅️', northwest:'↖️'
@@ -327,8 +343,8 @@ function buildPreviewUI(opt) {
           <div class="pv-dist">${c.distance}</div>
         </div>
         <div class="preview-minimap">🗺️</div>`;
-
-    case 'stepbystep':
+    }
+    case 'stepbystep': {
       const steps = c.steps.map((t, i) =>
         `<div class="pv-step-item">
            <div class="pv-step-num">${i + 1}</div>
@@ -340,8 +356,8 @@ function buildPreviewUI(opt) {
           <div class="pv-heading">${c.heading}</div>
           ${steps}
         </div>`;
-
-    case 'ai-buttons':
+    }
+    case 'ai-buttons': {
       const btns = c.buttons.map(b =>
         `<div class="pv-aib-btn">${b.label}</div>`
       ).join('');
@@ -351,7 +367,7 @@ function buildPreviewUI(opt) {
           <div class="pv-desc">${c.description}</div>
           <div class="pv-aib-grid">${btns}</div>
         </div>`;
-
+    }
     default:
       return `<div style="color:#fff;padding:2rem">알 수 없는 UI 유형: ${opt.type}</div>`;
   }

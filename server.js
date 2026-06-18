@@ -86,39 +86,40 @@ io.on('connection', (socket) => {
     socket.emit('all-notes', notes);
   }
 
-  // ── Shared events ──────────────────────────────────────────────────────────
+  // ── Host-only events ───────────────────────────────────────────────────────
+  if (role === 'host') {
+    socket.on('show-ui', (d) => {
+      currentState = d;
+      io.to('participants').emit('show-ui', d);
+      io.to('hosts').emit('current-state', currentState);
+    });
 
-  socket.on('show-ui', (d) => {
-    currentState = d;
-    io.to('participants').emit('show-ui', d);
-    io.to('hosts').emit('current-state', currentState);
-  });
+    socket.on('reset', () => {
+      currentState = { scenarioId: null, optionId: null, scenario: null, option: null };
+      io.to('participants').emit('reset');
+      io.to('hosts').emit('current-state', currentState);
+    });
 
-  socket.on('reset', () => {
-    currentState = { scenarioId: null, optionId: null, scenario: null, option: null };
-    io.to('participants').emit('reset');
-    io.to('hosts').emit('current-state', currentState);
-  });
+    socket.on('update-note', ({ key, text }) => {
+      notes[key] = text;
+      socket.to('hosts').emit('note-updated', { key, text });
+    });
+  }
 
-  // Participant submits a full response
-  socket.on('submit-response', (d) => {
-    const response = { ...d, timestamp: new Date().toISOString() };
-    responses.push(response);
-    io.to('hosts').emit('new-response', response);
-  });
+  // ── Participant-only events ─────────────────────────────────────────────────
+  if (role === 'participant') {
+    socket.on('submit-response', (d) => {
+      const response = { ...d, timestamp: new Date().toISOString() };
+      responses.push(response);
+      io.to('hosts').emit('new-response', response);
+    });
 
-  // Participant logs a fine-grained interaction event
-  socket.on('log-event', (d) => {
-    const event = { ...d, timestamp: new Date().toISOString() };
-    events.push(event);
-    io.to('hosts').emit('new-event', event);
-  });
-
-  // Host updates a note for a scenario/option
-  socket.on('update-note', ({ key, text }) => {
-    notes[key] = text;
-    socket.to('hosts').emit('note-updated', { key, text }); // broadcast to OTHER hosts
-  });
+    socket.on('log-event', (d) => {
+      const event = { ...d, timestamp: new Date().toISOString() };
+      events.push(event);
+      io.to('hosts').emit('new-event', event);
+    });
+  }
 });
 
 // ── Start ────────────────────────────────────────────────────────────────────

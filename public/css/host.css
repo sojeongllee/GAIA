@@ -79,10 +79,10 @@ body {
 }
 #active-info.visible { display: block; }
 
-/* ── Three-column layout ──────────────────────────────────────────────── */
+/* ── Four-column layout ───────────────────────────────────────────────── */
 #main {
   display: grid;
-  grid-template-columns: 230px 1fr 320px;
+  grid-template-columns: 190px 210px 1fr 280px;
   overflow: hidden;
 }
 
@@ -330,6 +330,85 @@ body {
 .r-comment { margin-top: 0.35rem; font-style: italic; color: var(--muted); }
 
 .log-empty { text-align: center; color: var(--muted); padding: 1.5rem 0.5rem; font-size: 0.83rem; }
+
+/* ── Live participant view ────────────────────────────────────────────── */
+#col-liveview {
+  background: #080c14;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#live-view-frame {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 30% 60%, #0d1f1055 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 30%, #1a0d2e55 0%, transparent 50%),
+    linear-gradient(180deg, #0a0e1a 0%, #0d1520 100%);
+}
+
+#live-view-waiting {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--muted);
+}
+
+.lv-icon { font-size: 2.5rem; }
+
+.lv-text {
+  font-size: 0.88rem;
+  text-align: center;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+#live-view-content {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Scale down the preview elements to fit the live view frame */
+#live-view-content .pv-popup {
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%) scale(0.72);
+  transform-origin: center center;
+  width: min(420px, 90%);
+}
+
+#live-view-content .pv-sidepanel {
+  transform: scale(0.78);
+  transform-origin: top right;
+  width: 240px;
+}
+
+#live-view-content .pv-hud {
+  transform: scale(0.82);
+  transform-origin: top right;
+}
+
+#live-view-content .pv-minimap {
+  transform: scale(0.82);
+  transform-origin: bottom right;
+}
+
+#live-view-content .pv-steps {
+  transform: scale(0.78);
+  transform-origin: bottom left;
+}
+
+#live-view-content .pv-aib {
+  bottom: 80px;
+  transform: translateX(-50%) scale(0.78);
+  transform-origin: bottom center;
+}
 
 /* ── Preview modal ────────────────────────────────────────────────────── */
 #preview-modal {

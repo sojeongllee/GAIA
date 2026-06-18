@@ -12,11 +12,9 @@
 <div id="topbar">
   <span class="logo">GAIA</span>
   <span class="status-badge" id="active-badge">대기 중</span>
-
   <div id="participant-count-badge">
     👤 연결된 참가자: <span id="participant-count">0</span>명
   </div>
-
   <div class="topbar-actions">
     <button class="btn btn-ghost btn-sm" onclick="exportResponsesCSV()">⬇️ 응답 CSV</button>
     <button class="btn btn-ghost btn-sm" onclick="exportResponsesJSON()">⬇️ 응답 JSON</button>
@@ -27,49 +25,56 @@
 <!-- Active state info bar -->
 <div id="active-info"></div>
 
-<!-- Three-column layout -->
+<!-- Four-column layout -->
 <div id="main">
 
-  <!-- Left: Scenario list (grouped by category) -->
+  <!-- Col 1: Scenario list -->
   <div class="col" id="col-scenarios">
     <div class="col-header">📋 시나리오</div>
     <div class="col-body" id="scenario-list"></div>
   </div>
 
-  <!-- Middle: Options + action bar -->
+  <!-- Col 2: Options + action bar -->
   <div class="col" id="col-options">
     <div class="col-header">🎛️ UI 옵션</div>
     <div class="col-body" id="option-list">
-      <p class="option-placeholder">← 왼쪽에서 시나리오를 선택하세요</p>
+      <p class="option-placeholder">← 시나리오를 선택하세요</p>
     </div>
     <div id="action-bar">
       <button class="btn btn-primary" id="btn-show" disabled onclick="showToParticipant()">
         ▶ 참가자에게 보이기
       </button>
-      <button class="btn btn-danger" onclick="resetParticipant()">
-        ↺ 초기화
-      </button>
+      <button class="btn btn-danger" onclick="resetParticipant()">↺ 초기화</button>
     </div>
   </div>
 
-  <!-- Right: Notes + response log -->
+  <!-- Col 3: Live participant view -->
+  <div class="col" id="col-liveview">
+    <div class="col-header">📺 참가자 화면 (실시간)</div>
+    <div id="live-view-frame">
+      <div id="live-view-waiting">
+        <div class="lv-icon">⏳</div>
+        <div class="lv-text">참가자에게 보이기를 누르면<br>여기서 실시간으로 볼 수 있어요</div>
+      </div>
+      <div id="live-view-content"></div>
+    </div>
+  </div>
+
+  <!-- Col 4: Notes + response log -->
   <div class="col" id="col-right">
 
-    <!-- Notes -->
     <div id="notes-section">
-      <div class="col-header" style="border-bottom:none">
-        📝 메모
-        <span id="notes-context"></span>
+      <div class="col-header" style="border-bottom:none;">
+        📝 메모 <span id="notes-context"></span>
       </div>
       <div id="notes-body">
         <textarea id="notes-textarea"
-          placeholder="시나리오 또는 UI 옵션을 선택하면 해당 메모를 작성할 수 있어요."
+          placeholder="시나리오 또는 UI 옵션을 선택하면 메모할 수 있어요."
           oninput="onNoteInput()"
           disabled></textarea>
       </div>
     </div>
 
-    <!-- Response log -->
     <div id="log-section">
       <div class="col-header" style="border-top:1px solid var(--border)">📊 응답 로그</div>
       <div class="col-body" id="log-body">
@@ -84,7 +89,7 @@
   </div>
 </div>
 
-<!-- Preview modal -->
+<!-- Preview modal (option card 미리보기 전용) -->
 <div id="preview-modal" onclick="closePreview(event)">
   <div class="preview-container">
     <div class="preview-header">
