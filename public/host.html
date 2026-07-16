@@ -8,7 +8,6 @@
 </head>
 <body>
 
-<!-- Top bar -->
 <div id="topbar">
   <span class="logo">GAIA</span>
   <span class="status-badge" id="active-badge">대기 중</span>
@@ -16,25 +15,25 @@
     👤 연결된 참가자: <span id="participant-count">0</span>명
   </div>
   <div class="topbar-actions">
-    <button class="btn btn-ghost btn-sm" onclick="exportResponsesCSV()">⬇️ 응답 CSV</button>
-    <button class="btn btn-ghost btn-sm" onclick="exportResponsesJSON()">⬇️ 응답 JSON</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportScenarioSurveysCSV()">⬇️ 상황 응답 CSV</button>
+    <button class="btn btn-ghost btn-sm" onclick="exportScenarioSurveysJSON()">⬇️ 상황 응답 JSON</button>
     <button class="btn btn-ghost btn-sm" onclick="exportEventsJSON()">⬇️ 이벤트 로그 JSON</button>
   </div>
 </div>
 
-<!-- Active state info bar -->
 <div id="active-info"></div>
 
-<!-- Four-column layout -->
 <div id="main">
 
-  <!-- Col 1: Scenario list -->
   <div class="col" id="col-scenarios">
     <div class="col-header">📋 시나리오</div>
     <div class="col-body" id="scenario-list"></div>
   </div>
 
-  <!-- Col 2: Options + action bar -->
+  <div class="column-resizer" id="scenario-column-resizer"
+       role="separator" aria-orientation="vertical"
+       aria-label="시나리오 열 너비 조절" tabindex="0"></div>
+
   <div class="col" id="col-options">
     <div class="col-header">🎛️ UI 옵션</div>
     <div class="col-body" id="option-list">
@@ -48,48 +47,116 @@
     </div>
   </div>
 
-  <!-- Col 3: Live participant view -->
-  <div class="col" id="col-liveview">
-    <div class="col-header">📺 참가자 화면 (실시간)</div>
-    <div id="live-view-frame">
-      <div id="live-view-waiting">
-        <div class="lv-icon">⏳</div>
-        <div class="lv-text">참가자에게 보이기를 누르면<br>여기서 실시간으로 볼 수 있어요</div>
-      </div>
-      <div id="live-view-content"></div>
-    </div>
-  </div>
+  <div class="column-resizer" id="option-column-resizer"
+       role="separator" aria-orientation="vertical"
+       aria-label="UI 옵션 열 너비 조절" tabindex="0"></div>
 
-  <!-- Col 4: Notes + response log -->
-  <div class="col" id="col-right">
-
-    <div id="notes-section">
-      <div class="col-header" style="border-bottom:none;">
-        📝 메모 <span id="notes-context"></span>
-      </div>
-      <div id="notes-body">
-        <textarea id="notes-textarea"
-          placeholder="시나리오 또는 UI 옵션을 선택하면 메모할 수 있어요."
-          oninput="onNoteInput()"
-          disabled></textarea>
-      </div>
+  <aside class="col" id="col-right">
+    <div class="col-header survey-col-header">
+      <span>🧾 상황별 인터뷰 기록</span>
+      <span id="survey-scenario-label">시나리오를 선택하세요</span>
     </div>
 
-    <div id="log-section">
-      <div class="col-header" style="border-top:1px solid var(--border)">📊 응답 로그</div>
-      <div class="col-body" id="log-body">
-        <input type="text" id="log-filter" placeholder="참가자 ID로 필터 (예: P1)"
-               oninput="filterLog()">
-        <div id="log-entries">
-          <p class="log-empty">아직 응답이 없습니다.</p>
-        </div>
-      </div>
+    <div id="survey-empty">
+      왼쪽에서 시나리오를 선택하면 해당 상황의 인터뷰 질문을 기록할 수 있습니다.
     </div>
 
-  </div>
+    <form id="scenario-survey-form" hidden oninput="markSurveyDirty()" onchange="markSurveyDirty()">
+      <div class="survey-scroll">
+
+        <section class="survey-question">
+          <h3><span>1.</span> 이 상황은 실제로 얼마나 자주 경험하나요?</h3>
+          <div class="frequency-scale" role="radiogroup" aria-label="상황 경험 빈도">
+            <label><input type="radio" name="q1Frequency" value="1"><b>1</b><small>거의 없음</small></label>
+            <label><input type="radio" name="q1Frequency" value="2"><b>2</b><small>드물게</small></label>
+            <label><input type="radio" name="q1Frequency" value="3"><b>3</b><small>가끔</small></label>
+            <label><input type="radio" name="q1Frequency" value="4"><b>4</b><small>자주</small></label>
+            <label><input type="radio" name="q1Frequency" value="5"><b>5</b><small>매우 자주</small></label>
+          </div>
+        </section>
+
+        <section class="survey-question">
+          <h3><span>2.</span> 이 상황에서 가장 필요한 AI 기능은 무엇인가요?</h3>
+          <p class="question-hint">복수 선택 가능</p>
+          <div id="q2-function-options" class="survey-check-grid"></div>
+          <label class="other-field">
+            <span>기타</span>
+            <input type="text" id="q2Other" placeholder="기타 기능을 입력하세요">
+          </label>
+        </section>
+
+        <section class="survey-question">
+          <h3><span>3.</span> 그중 가장 중요한 기능 1가지는 무엇인가요?</h3>
+          <select id="q3MostImportant">
+            <option value="">선택하세요</option>
+          </select>
+          <label class="other-field q3-other-field" hidden>
+            <span>기타</span>
+            <input type="text" id="q3Other" placeholder="가장 중요한 기능을 입력하세요">
+          </label>
+        </section>
+
+        <section class="survey-question">
+          <h3><span>4.</span> 왜 그 기능이 가장 중요하다고 생각하나요?</h3>
+          <textarea id="q4Reason" rows="4" placeholder="연구진이 참여자의 답변을 기록하세요."></textarea>
+        </section>
+
+        <section class="survey-question">
+          <h3><span>5.</span> 이 기능이 어떤 방식으로 제공되면 가장 좋을까요?</h3>
+          <p class="question-hint">복수 선택 가능</p>
+          <div id="q5-mode-options" class="survey-check-grid"></div>
+          <label class="other-field">
+            <span>기타</span>
+            <input type="text" id="q5Other" placeholder="기타 제공 방식을 입력하세요">
+          </label>
+        </section>
+
+        <section class="survey-question">
+          <h3><span>6.</span> 가장 적절한 UI 형태 1가지를 고른다면?</h3>
+          <div id="q6-ui-options" class="survey-radio-list"></div>
+        </section>
+
+        <section class="survey-question">
+          <h3><span>7.</span> 왜 이 UI가 가장 적절하다고 생각하나요?</h3>
+          <textarea id="q7Reason" rows="4" placeholder="선택한 UI가 적절한 이유를 기록하세요."></textarea>
+        </section>
+
+        <section class="survey-question">
+          <h3><span>8.</span> AI는 어느 정도까지 개입해도 괜찮나요?</h3>
+          <div id="q8-intervention-options" class="survey-radio-list"></div>
+        </section>
+
+        <section class="survey-question">
+          <h3><span>9.</span> 그렇게 생각한 이유는 무엇인가요?</h3>
+          <textarea id="q9Reason" rows="4" placeholder="AI 개입 수준에 대한 이유를 기록하세요."></textarea>
+        </section>
+
+        <section class="survey-question">
+          <h3><span>10.</span> 이 기능이나 UI 방식이 불편할 수 있는 점이 있나요?</h3>
+          <p class="question-hint">복수 선택 가능</p>
+          <div id="q10-discomfort-options" class="survey-check-grid"></div>
+          <label class="other-field">
+            <span>기타</span>
+            <input type="text" id="q10Other" placeholder="기타 불편 사항을 입력하세요">
+          </label>
+        </section>
+
+        <section class="survey-question">
+          <h3><span>11.</span> 추가로 꼭 있었으면 하는 기능이나 의견이 있다면 적어주세요.</h3>
+          <textarea id="q11Additional" rows="5" placeholder="추가 기능 또는 의견을 기록하세요."></textarea>
+        </section>
+      </div>
+
+      <div class="survey-save-bar">
+        <span id="survey-save-status">저장되지 않은 변경 없음</span>
+        <button type="button" class="btn btn-primary" id="survey-save-btn" onclick="saveScenarioSurvey()" disabled>
+          상황 응답 저장
+        </button>
+      </div>
+    </form>
+  </aside>
 </div>
 
-<!-- Preview modal (option card 미리보기 전용) -->
 <div id="preview-modal" onclick="closePreview(event)">
   <div class="preview-container">
     <div class="preview-header">
