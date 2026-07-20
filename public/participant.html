@@ -16,6 +16,18 @@
 
   <div id="pid-badge">참가자: <strong id="pid-label">-</strong></div>
 
+  <div id="tts-controls" hidden aria-label="음성 안내 제어">
+    <button type="button" class="tts-control-btn"
+            onclick="replayCurrentTts()" aria-label="현재 UI 음성 안내 다시 듣기">
+      🔊 <span>다시 듣기</span>
+    </button>
+    <button type="button" class="tts-control-btn tts-stop-btn"
+            onclick="stopTts(true)" aria-label="음성 안내 멈추기">
+      ■ <span>멈춤</span>
+    </button>
+    <span id="tts-control-status">음성 안내 준비됨</span>
+  </div>
+
   <div id="waiting-screen">
     <div class="w-icon">⏳</div>
     <div class="w-title">대기 중...</div>
@@ -29,5 +41,6 @@
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/js/participant.js"></script>
+<script src="/js/tts.js"></script>
 </body>
 </html>
